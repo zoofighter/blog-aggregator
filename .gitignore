@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+crawler.log
+
+# Temporary files
+*.tmp
+*.bak
+*.csv~
+
+# Output files
+analyzed_blogs.csv
+new_blogs.csv
+test.csv
+blogs_export.csv
+
+# Task output
+tasks/
+/private/
+
+# Backup files
+*_backup_*.db
+*_backup_*.csv
