@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.blog.crawler</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/boon/Dropbox/03_code/0223_a/blog_crawler.py</string>
+        <string>--limit</string>
+        <string>10</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/boon/Dropbox/03_code/0223_a</string>
+
+    <key>StartCalendarInterval</key>
+    <array>
+        <!-- 매일 오전 9시 -->
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <!-- 매일 오후 6시 -->
+        <dict>
+            <key>Hour</key>
+            <integer>18</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/boon/Dropbox/03_code/0223_a/crawler.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/boon/Dropbox/03_code/0223_a/crawler_error.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

@@ -1,0 +1,127 @@
+# 100개 블로그 빠른 수집 리스트
+# 복사해서 blog_urls.txt로 저장 후 사용
+
+# === Machine Learning (30개) ===
+
+# 대기업/연구소
+https://openai.com/blog
+https://www.deepmind.com/blog
+https://ai.googleblog.com
+https://ai.meta.com/blog
+https://research.nvidia.com/blog
+https://aws.amazon.com/blogs/machine-learning
+https://blog.tensorflow.org
+https://pytorch.org/blog
+https://huggingface.co/blog
+https://www.microsoft.com/en-us/research/blog
+
+# 개인/커뮤니티
+https://karpathy.github.io
+https://colah.github.io
+https://distill.pub
+https://lilianweng.github.io
+https://ruder.io
+https://thegradient.pub
+https://machinelearningmastery.com
+https://www.fast.ai/posts
+https://sebastianruder.com
+https://explosion.ai/blog
+
+# Medium/플랫폼
+https://towardsdatascience.com
+https://ai.plainenglish.io
+https://medium.com/tensorflow
+https://medium.com/pytorch
+https://medium.com/google-developers
+https://medium.com/@karpathy
+https://blog.paperspace.com
+https://wandb.ai/site/articles
+https://neptune.ai/blog
+https://www.kaggle.com/discussions
+
+# === Art & Design (20개) ===
+
+https://www.thisiscolossal.com
+https://www.itsnicethat.com
+https://www.creativeapplications.net
+https://www.designboom.com
+https://www.awwwards.com/blog
+https://dribbble.com/stories
+https://99designs.com/blog
+https://www.creativebloq.com
+https://abduzeedo.com
+https://www.siteinspire.com/blog
+https://www.underconsideration.com/brandnew
+https://eyeondesign.aiga.org
+https://www.designweek.co.uk
+https://www.ideo.com/blog
+https://medium.com/thinking-design
+https://uxplanet.org
+https://uxdesign.cc
+https://www.toptal.com/designers/blog
+https://www.invisionapp.com/inside-design
+https://www.smashingmagazine.com/category/design
+
+# === Tech & Programming (25개) ===
+
+# 웹 개발
+https://www.smashingmagazine.com
+https://css-tricks.com
+https://web.dev/blog
+https://alistapart.com
+https://blog.logrocket.com
+https://kentcdodds.com/blog
+https://overreacted.io
+https://joshwcomeau.com
+https://www.joshwcomeau.com/blog
+https://2ality.com
+
+# 일반 프로그래밍
+https://martinfowler.com
+https://www.joelonsoftware.com
+https://blog.codinghorror.com
+https://stackoverflow.blog
+https://github.blog
+https://www.paulgraham.com/articles.html
+https://danluu.com
+https://increment.com
+https://blog.cleancoder.com
+https://blog.pragmaticengineer.com
+
+# 한국 기술 블로그
+https://techblog.woowahan.com
+https://tech.kakao.com
+https://engineering.linecorp.com/ko/blog
+https://meetup.toast.com
+https://tech.inflab.com
+
+# === Data Science (15개) ===
+
+https://flowingdata.com
+https://fivethirtyeight.com
+https://simplystatistics.org
+https://www.dataquest.io/blog
+https://mode.com/blog
+https://www.tableau.com/blog
+https://www.kdnuggets.com
+https://www.analyticsvidhya.com/blog
+https://blog.datasciencedojo.com
+https://medium.com/towards-data-science
+https://blog.dataiku.com
+https://www.dominodatalab.com/blog
+https://faculty.ai/blog
+https://www.datascience.com/blog
+https://elitedatascience.com/blog
+
+# === Essay & General (10개) ===
+
+https://waitbutwhy.com
+https://www.brainpickings.org
+https://fs.blog
+https://www.gwern.net
+https://slatestarcodex.com
+https://marginalrevolution.com
+https://astralcodexten.substack.com
+https://www.ribbonfarm.com
+https://blog.samaltman.com
+https://a16z.com/blog
