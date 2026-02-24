@@ -249,17 +249,24 @@ name,url,feed_url,category,priority,active,description,tags
 ### export - CSV 내보내기
 
 ```bash
+# 기본 내보내기
 python blog_manager.py export --csv my_blogs.csv
+
+# 정렬 옵션 지정
+python blog_manager.py export --csv my_blogs.csv --sort-by created_at
+python blog_manager.py export --csv my_blogs.csv --sort-by name
 ```
 
 **용도**: 데이터베이스 → CSV 백업
+
+**정렬 옵션**: list 명령과 동일 (category, created_at, name, priority)
 
 ---
 
 ### list - 블로그 목록
 
 ```bash
-# 전체 목록
+# 전체 목록 (기본: 카테고리별 정렬)
 python blog_manager.py list
 
 # 카테고리 필터
@@ -267,21 +274,42 @@ python blog_manager.py list --category ml
 
 # 비활성 포함
 python blog_manager.py list --all
+
+# 정렬 옵션
+python blog_manager.py list --sort-by created_at  # 등록일 순
+python blog_manager.py list --sort-by name         # 이름 순
+python blog_manager.py list --sort-by priority     # 우선순위 순
+python blog_manager.py list --sort-by category     # 카테고리 순 (기본)
+
+# 조합 사용
+python blog_manager.py list --category ml --sort-by created_at --verbose
 ```
+
+**정렬 옵션**:
+- `category` (기본값): 카테고리별 그룹화, 우선순위 내림차순
+- `created_at`: 블로그 등록일 기준 내림차순 (최신 등록 먼저)
+- `name`: 블로그 이름 알파벳/가나다순 오름차순
+- `priority`: 우선순위 내림차순, 같은 우선순위는 이름순
 
 **출력**:
 ```
-============================================================
-📊 블로그 목록 (35개)
-============================================================
-[1] 요즘IT (tech)
-    URL: https://yozm.wishket.com
-    RSS: https://yozm.wishket.com/rss
-    태그: tech, development
+📋 블로그 목록 (35개) - 정렬: created_at
 
-[2] 김단테 블로그 (other)
-    URL: https://blog.naver.com/mynameisdj
-    RSS: https://rss.blog.naver.com/mynameisdj.xml
+[1] 🟢 요즘IT (other)
+    등록일: 2026-02-24
+
+[2] 🟢 김단테 블로그 (other)
+    등록일: 2026-02-24
+...
+```
+
+**상세 출력 (--verbose)**:
+```
+[1] 🟢 요즘 사람들의 IT 매거진, 요즘IT (other)
+    URL: https://yozm.wishket.com/magazine/
+    Feed: https://yozm.wishket.com/magazine/feed/
+    Priority: medium
+    등록일: 2026-02-24
 ...
 ```
 
@@ -420,14 +448,20 @@ from blog_manager import BlogManager
 # 초기화
 manager = BlogManager()
 
-# 블로그 목록
+# 블로그 목록 (기본: 카테고리순)
 blogs = manager.list_blogs()
 for blog in blogs:
     print(f"{blog['name']}: {blog['url']}")
 
+# 블로그 목록 (등록일순) ⭐ NEW
+blogs = manager.list_blogs(sort_by='created_at')
+for blog in blogs:
+    created = blog['created_at'].split()[0]  # YYYY-MM-DD만 추출
+    print(f"[{created}] {blog['name']}")
+
 # 통계
 stats = manager.get_stats()
-print(f"전체: {stats['total_blogs']}개")
+print(f"전체: {stats['total']}개")
 
 # 포스트 통계
 post_stats = manager.get_post_stats()
@@ -458,7 +492,7 @@ manager.print_summary()
 
 ---
 
-### 필터링
+### 필터링 및 정렬
 
 ```python
 from blog_manager import BlogManager
@@ -469,8 +503,16 @@ manager = BlogManager()
 ml_blogs = manager.list_blogs(category='ml')
 print(f"ML 블로그: {len(ml_blogs)}개")
 
+# ML 카테고리를 등록일순으로 정렬 ⭐ NEW
+ml_blogs = manager.list_blogs(category='ml', sort_by='created_at')
+for blog in ml_blogs:
+    print(f"{blog['name']} - {blog['created_at']}")
+
 # 모든 블로그 (비활성 포함)
 all_blogs = manager.list_blogs(active_only=False)
+
+# 이름순으로 정렬 ⭐ NEW
+sorted_blogs = manager.list_blogs(sort_by='name')
 
 # 최근 20개 포스트
 recent_posts = manager.get_recent_posts(limit=20)
@@ -653,15 +695,21 @@ python blog_manager.py post-stats > stats/$(date +%Y%m%d).txt
 
 ## ✅ 요약
 
-| 명령어 | 용도 |
-|--------|------|
-| `init` | DB 초기화 |
-| `load --csv` | CSV 로드 |
-| `export --csv` | CSV 내보내기 |
-| `list` | 블로그 목록 |
-| `stats` | 블로그 통계 |
-| `post-stats` | 포스트 통계 |
-| `recent-posts` | 최근 포스트 |
-| `validate` | RSS 검증 |
+| 명령어 | 용도 | 주요 옵션 |
+|--------|------|----------|
+| `init` | DB 초기화 | - |
+| `load --csv` | CSV 로드 | `--csv [파일경로]` |
+| `export --csv` | CSV 내보내기 | `--csv [파일경로]` `--sort-by [정렬]` |
+| `list` | 블로그 목록 | `--category [카테고리]` `--sort-by [정렬]` `--verbose` |
+| `stats` | 블로그 통계 | - |
+| `post-stats` | 포스트 통계 | - |
+| `recent-posts` | 최근 포스트 | `--limit [개수]` |
+| `validate` | RSS 검증 | `--verbose` |
+
+**정렬 옵션** (`--sort-by`):
+- `category`: 카테고리별 그룹화 (기본값)
+- `created_at`: 블로그 등록일순 ⭐ **NEW**
+- `name`: 블로그 이름순
+- `priority`: 우선순위순
 
 **blog_manager.py로 블로그 데이터를 효율적으로 관리하세요!** 🎉

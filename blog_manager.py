@@ -153,15 +153,30 @@ class BlogManager:
         print(f"✅ CSV 로드 완료: {added_count}개 추가, {updated_count}개 업데이트")
         return added_count + updated_count
 
-    def export_to_csv(self, output_path: str):
-        """데이터베이스에서 CSV로 내보내기"""
+    def export_to_csv(self, output_path: str, sort_by: str = 'category'):
+        """데이터베이스에서 CSV로 내보내기
+
+        Args:
+            output_path: 출력 CSV 파일 경로
+            sort_by: 정렬 기준 ('category', 'created_at', 'name', 'priority')
+        """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("""
+        # 정렬 기준 설정
+        if sort_by == 'created_at':
+            order_clause = "ORDER BY created_at DESC"
+        elif sort_by == 'name':
+            order_clause = "ORDER BY name ASC"
+        elif sort_by == 'priority':
+            order_clause = "ORDER BY priority DESC, name ASC"
+        else:  # 'category' (기본값)
+            order_clause = "ORDER BY category, priority DESC"
+
+        cursor.execute(f"""
             SELECT name, url, feed_url, category, priority, active, description, tags
             FROM blogs
-            ORDER BY category, priority DESC
+            {order_clause}
         """)
 
         rows = cursor.fetchall()
@@ -183,10 +198,16 @@ class BlogManager:
                 ])
 
         conn.close()
-        print(f"✅ CSV 내보내기 완료: {output_path} ({len(rows)}개)")
+        print(f"✅ CSV 내보내기 완료: {output_path} ({len(rows)}개) - 정렬: {sort_by}")
 
-    def list_blogs(self, category: str = None, active_only: bool = True) -> List[Dict]:
-        """블로그 목록 조회"""
+    def list_blogs(self, category: str = None, active_only: bool = True, sort_by: str = 'category') -> List[Dict]:
+        """블로그 목록 조회
+
+        Args:
+            category: 카테고리 필터
+            active_only: 활성화된 블로그만 조회
+            sort_by: 정렬 기준 ('category', 'created_at', 'name', 'priority')
+        """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -201,7 +222,15 @@ class BlogManager:
             query += " AND category = ?"
             params.append(category)
 
-        query += " ORDER BY category, priority DESC"
+        # 정렬 기준 적용
+        if sort_by == 'created_at':
+            query += " ORDER BY created_at DESC"
+        elif sort_by == 'name':
+            query += " ORDER BY name ASC"
+        elif sort_by == 'priority':
+            query += " ORDER BY priority DESC, name ASC"
+        else:  # 'category' (기본값)
+            query += " ORDER BY category, priority DESC"
 
         cursor.execute(query, params)
         columns = [desc[0] for desc in cursor.description]
@@ -391,6 +420,8 @@ def main():
                        help='실행할 작업')
     parser.add_argument('--csv', help='CSV 파일 경로')
     parser.add_argument('--category', help='카테고리 필터')
+    parser.add_argument('--sort-by', choices=['category', 'created_at', 'name', 'priority'],
+                       default='category', help='정렬 기준 (기본값: category)')
     parser.add_argument('--all', action='store_true', help='비활성 블로그도 포함')
     parser.add_argument('--verbose', '-v', action='store_true', help='상세 출력')
     parser.add_argument('--limit', type=int, default=10, help='포스트 개수 제한')
@@ -411,22 +442,32 @@ def main():
 
     elif args.action == 'export':
         output = args.csv or 'blogs_export.csv'
-        manager.export_to_csv(output)
+        manager.export_to_csv(output, sort_by=args.sort_by)
 
     elif args.action == 'list':
         blogs = manager.list_blogs(
             category=args.category,
-            active_only=not args.all
+            active_only=not args.all,
+            sort_by=args.sort_by
         )
 
-        for blog in blogs:
+        print(f"\n📋 블로그 목록 ({len(blogs)}개) - 정렬: {args.sort_by}\n")
+        for i, blog in enumerate(blogs, 1):
             status = "🟢" if blog['active'] else "🔴"
-            print(f"{status} [{blog['category']}] {blog['name']}")
+            created_date = blog.get('created_at', 'N/A')
+            if created_date and created_date != 'N/A':
+                # 날짜 포맷팅 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DD)
+                created_date = created_date.split()[0] if ' ' in created_date else created_date[:10]
+
+            print(f"[{i}] {status} {blog['name']} ({blog['category']})")
             if args.verbose:
-                print(f"   URL: {blog['url']}")
-                print(f"   Feed: {blog['feed_url'] or 'N/A'}")
-                print(f"   Priority: {blog['priority']}")
+                print(f"    URL: {blog['url']}")
+                print(f"    Feed: {blog['feed_url'] or 'N/A'}")
+                print(f"    Priority: {blog['priority']}")
+                print(f"    등록일: {created_date}")
                 print()
+            else:
+                print(f"    등록일: {created_date}")
 
     elif args.action == 'stats':
         manager.print_summary()
