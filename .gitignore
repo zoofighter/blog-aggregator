@@ -46,6 +46,20 @@ blogs_export.csv
 tasks/
 /private/
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Backup files
 *_backup_*.db
 *_backup_*.csv
+backups/
+digest_*.html
+
+# Data files (optional - uncomment to exclude)
+# data/*.csv
+# data/*.txt
+
+# Legacy files
+legacy/
