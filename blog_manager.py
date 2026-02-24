@@ -58,6 +58,35 @@ class BlogManager:
             )
         """)
 
+        # 북마크 테이블
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS bookmarks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+                UNIQUE(post_id)
+            )
+        """)
+
+        # 읽음 표시 테이블
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS read_posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+                UNIQUE(post_id)
+            )
+        """)
+
+        # 성능 최적화를 위한 인덱스 생성
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_blog_id ON posts(blog_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_scraped_at ON posts(scraped_at DESC)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published_date DESC)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_blogs_category ON blogs(category)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_blogs_active ON blogs(active)")
+
         conn.commit()
         conn.close()
         print(f"✅ 데이터베이스 초기화 완료: {self.db_path}")

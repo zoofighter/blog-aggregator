@@ -1,21 +1,35 @@
-blog_name,url,feed_url,category,priority,active,description,tags
-"OpenAI Blog","https://openai.com/blog","https://openai.com/blog/rss","ml","high","true","OpenAI official blog","ai,research,gpt"
-"Towards Data Science","https://towardsdatascience.com","https://towardsdatascience.com/feed","ml","high","true","Medium publication on AI/ML","ml,data-science,python"
-"Machine Learning Mastery","https://machinelearningmastery.com","https://machinelearningmastery.com/feed","ml","medium","true","Practical ML tutorials","ml,tutorial,deep-learning"
-"DeepMind Blog","https://deepmind.google/discover/blog/","","ml","high","true","Google DeepMind research","ai,research,deepmind"
-"Distill.pub","https://distill.pub","https://distill.pub/rss.xml","ml","medium","true","ML research explanations","ml,research,visualization"
-"The Gradient","https://thegradient.pub","https://thegradient.pub/rss","ml","medium","true","AI research news and perspectives","ai,research,opinion"
-"Google AI Blog","https://ai.googleblog.com","https://ai.googleblog.com/feeds/posts/default","ml","high","true","Google AI research","ai,google,research"
-"Facebook AI","https://ai.meta.com/blog/","","ml","high","true","Meta AI research","ai,meta,research"
-"ArXiv Sanity","http://www.arxiv-sanity.com","","ml","medium","true","AI papers simplified","papers,research,arxiv"
-"Papers With Code","https://paperswithcode.com","","ml","medium","true","ML papers with implementations","papers,code,ml"
-"Creative Applications","https://www.creativeapplications.net","https://www.creativeapplications.net/feed","art","high","true","Digital art and creative tech","art,creative-tech,design"
-"Colossal","https://www.thisiscolossal.com","https://www.thisiscolossal.com/feed","art","high","true","Art, design, and visual culture","art,design,culture"
-"It's Nice That","https://www.itsnicethat.com","https://www.itsnicethat.com/feed","art","medium","true","Creative inspiration","art,design,inspiration"
-"Designboom","https://www.designboom.com","https://www.designboom.com/feed","art","medium","true","Architecture and design","design,architecture,art"
-"Awwwards Blog","https://www.awwwards.com/blog","https://www.awwwards.com/blog/feed","art","medium","true","Web design inspiration","web-design,ui,ux"
-"Smashing Magazine","https://www.smashingmagazine.com","https://www.smashingmagazine.com/feed","tech","high","true","Web development and design","web,design,development"
-"CSS-Tricks","https://css-tricks.com","https://css-tricks.com/feed","tech","medium","true","Frontend development","css,frontend,web"
-"A List Apart","https://alistapart.com","https://alistapart.com/main/feed","tech","medium","true","Web design and development","web,design,standards"
-"Hacker News","https://news.ycombinator.com","","tech","high","true","Tech news aggregator","tech,startup,programming"
-"TechCrunch","https://techcrunch.com","https://techcrunch.com/feed","tech","high","true","Tech industry news","tech,startup,business"
+https://yozm.wishket.com/magazine/
+https://blog.naver.com/jeunkim
+https://blog.naver.com/ranto28
+https://blog.naver.com/simula
+https://blog.naver.com/mynameisdj
+https://kmu1988.com/
+https://brunch.co.kr/@jason545/
+https://brunch.co.kr/@kimmh12728xrf/
+https://blog.naver.com/goforsweet/
+https://brunch.co.kr/@holidaymemories
+https://brunch.co.kr/@leesol/
+https://brunch.co.kr/@ghidesigner
+https://brunch.co.kr/@tothemoonpark
+https://brunch.co.kr/@ioojoo
+https://stock79.tistory.com/
+https://flyingpink.tistory.com/
+https://khiro38.tistory.com/
+https://blog.naver.com/hodolry
+https://blog.naver.com/bsspro
+https://blog.naver.com/jakojako
+https://blog.naver.com/kukuri923
+https://blog.naver.com/withjoy79/
+https://blog.naver.com/usforall
+https://blog.naver.com/yminsong
+https://blog.naver.com/heecheoldo
+https://blog.naver.com/july3003
+https://blog.naver.com/khiro38/
+https://blog.naver.com/jjangee1
+https://blog.naver.com/ghdtjr1212
+https://blog.naver.com/ne2ne2
+https://blog.naver.com/r123k120
+https://blog.naver.com/vd159
+https://blog.naver.com/fantasticpotato
+https://blog.naver.com/june0610
+https://blog.naver.com/winter9377
