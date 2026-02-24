@@ -246,19 +246,31 @@ async def get_categories():
 
 
 @app.get("/api/blogs")
-async def get_blogs():
-    """블로그 목록"""
+async def get_blogs(sort_by: Optional[str] = 'category'):
+    """블로그 목록 (등록일/크롤링일 포함)"""
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT b.id, b.name, b.category, b.url,
+    # 정렬 기준 설정
+    if sort_by == 'created_at':
+        order_clause = "ORDER BY b.created_at DESC"
+    elif sort_by == 'last_crawled':
+        order_clause = "ORDER BY b.last_crawled DESC NULLS LAST"
+    elif sort_by == 'name':
+        order_clause = "ORDER BY b.name ASC"
+    elif sort_by == 'priority':
+        order_clause = "ORDER BY b.priority DESC, b.name ASC"
+    else:  # 'category' (기본값)
+        order_clause = "ORDER BY b.category, b.priority DESC"
+
+    cursor.execute(f"""
+        SELECT b.id, b.name, b.category, b.url, b.created_at, b.last_crawled, b.priority,
                COUNT(p.id) as post_count
         FROM blogs b
         LEFT JOIN posts p ON b.id = p.blog_id
         WHERE b.active = TRUE
         GROUP BY b.id
-        ORDER BY b.category, b.name
+        {order_clause}
     """)
 
     blogs = []
@@ -268,7 +280,10 @@ async def get_blogs():
             'name': row['name'],
             'category': row['category'],
             'url': row['url'],
-            'post_count': row['post_count']
+            'post_count': row['post_count'],
+            'created_at': row['created_at'],
+            'last_crawled': row['last_crawled'],
+            'priority': row['priority']
         })
 
     conn.close()
@@ -391,8 +406,18 @@ async def index():
                 </div>
             </div>
 
-            <!-- 필터 -->
-            <div class="mt-4 flex gap-3 flex-wrap">
+            <!-- 탭 -->
+            <div class="mt-4 flex gap-2 border-b" style="border-color: var(--border-color);">
+                <button onclick="switchTab('posts')" id="tab-posts" class="px-4 py-2 font-medium border-b-2 border-blue-600 text-blue-600">
+                    📄 포스트
+                </button>
+                <button onclick="switchTab('blogs')" id="tab-blogs" class="px-4 py-2 font-medium" style="color: var(--text-secondary); border-bottom: 2px solid transparent;">
+                    📚 블로그 목록
+                </button>
+            </div>
+
+            <!-- 포스트 필터 -->
+            <div id="post-filters" class="mt-4 flex gap-3 flex-wrap">
                 <input
                     type="text"
                     id="search-input"
@@ -422,6 +447,25 @@ async def index():
                     검색
                 </button>
             </div>
+
+            <!-- 블로그 필터 -->
+            <div id="blog-filters" class="mt-4 flex gap-3 flex-wrap" style="display: none;">
+                <select id="blog-category-filter" class="px-4 py-2 rounded-lg" style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color);">
+                    <option value="">모든 카테고리</option>
+                </select>
+
+                <select id="blog-sort" class="px-4 py-2 rounded-lg" style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color);">
+                    <option value="category">카테고리순</option>
+                    <option value="created_at">등록일순 (최신)</option>
+                    <option value="last_crawled">크롤링일순 (최근)</option>
+                    <option value="name">이름순</option>
+                    <option value="priority">우선순위순</option>
+                </select>
+
+                <button onclick="loadBlogsList()" class="px-6 py-2 bg-blue-600 text-white rounded-lg btn hover:bg-blue-700">
+                    정렬
+                </button>
+            </div>
         </div>
     </header>
 
@@ -432,17 +476,27 @@ async def index():
             <p class="mt-4" style="color: var(--text-secondary);">로딩 중...</p>
         </div>
 
-        <div id="posts-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3" style="display: none;"></div>
+        <!-- 포스트 탭 -->
+        <div id="posts-tab">
+            <div id="posts-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3" style="display: none;"></div>
+            <div id="pagination" class="mt-8 flex justify-center gap-2" style="display: none;"></div>
+            <div id="no-results" class="text-center py-12" style="display: none;">
+                <p style="color: var(--text-secondary);" class="text-lg">📭 포스트가 없습니다.</p>
+            </div>
+        </div>
 
-        <div id="pagination" class="mt-8 flex justify-center gap-2" style="display: none;"></div>
-
-        <div id="no-results" class="text-center py-12" style="display: none;">
-            <p style="color: var(--text-secondary);" class="text-lg">📭 포스트가 없습니다.</p>
+        <!-- 블로그 목록 탭 -->
+        <div id="blogs-tab" style="display: none;">
+            <div id="blogs-container" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+            <div id="blogs-no-results" class="text-center py-12" style="display: none;">
+                <p style="color: var(--text-secondary);" class="text-lg">📭 블로그가 없습니다.</p>
+            </div>
         </div>
     </main>
 
     <script>
         let currentPage = 1;
+        let currentTab = 'posts';
         let filters = {
             bookmarked: null,
             unread: null
@@ -456,6 +510,41 @@ async def index():
             'essay': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
             'other': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
         };
+
+        // 탭 전환
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // 탭 버튼 스타일 변경
+            const postsBtn = document.getElementById('tab-posts');
+            const blogsBtn = document.getElementById('tab-blogs');
+
+            if (tab === 'posts') {
+                postsBtn.className = 'px-4 py-2 font-medium border-b-2 border-blue-600 text-blue-600';
+                blogsBtn.className = 'px-4 py-2 font-medium';
+                blogsBtn.style.color = 'var(--text-secondary)';
+                blogsBtn.style.borderBottom = '2px solid transparent';
+
+                document.getElementById('post-filters').style.display = 'flex';
+                document.getElementById('blog-filters').style.display = 'none';
+                document.getElementById('posts-tab').style.display = 'block';
+                document.getElementById('blogs-tab').style.display = 'none';
+
+                loadPosts();
+            } else {
+                postsBtn.className = 'px-4 py-2 font-medium';
+                postsBtn.style.color = 'var(--text-secondary)';
+                postsBtn.style.borderBottom = '2px solid transparent';
+                blogsBtn.className = 'px-4 py-2 font-medium border-b-2 border-blue-600 text-blue-600';
+
+                document.getElementById('post-filters').style.display = 'none';
+                document.getElementById('blog-filters').style.display = 'flex';
+                document.getElementById('posts-tab').style.display = 'none';
+                document.getElementById('blogs-tab').style.display = 'block';
+
+                loadBlogsList();
+            }
+        }
 
         // 다크모드
         function initTheme() {
@@ -551,7 +640,7 @@ async def index():
             });
         }
 
-        // 블로그 목록 로드
+        // 블로그 목록 로드 (필터용)
         async function loadBlogs() {
             const response = await fetch('/api/blogs');
             const blogs = await response.json();
@@ -563,6 +652,102 @@ async def index():
                 option.textContent = `${blog.name} (${blog.post_count})`;
                 select.appendChild(option);
             });
+
+            // 블로그 탭 카테고리 필터도 초기화
+            const blogCatSelect = document.getElementById('blog-category-filter');
+            const categories = [...new Set(blogs.map(b => b.category))];
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                blogCatSelect.appendChild(option);
+            });
+        }
+
+        // 블로그 목록 로드 (블로그 탭)
+        async function loadBlogsList() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('blogs-container').style.display = 'none';
+
+            const sortBy = document.getElementById('blog-sort').value;
+            const category = document.getElementById('blog-category-filter').value;
+
+            let url = `/api/blogs?sort_by=${sortBy}`;
+            const response = await fetch(url);
+            let blogs = await response.json();
+
+            // 카테고리 필터 적용 (클라이언트 측)
+            if (category) {
+                blogs = blogs.filter(b => b.category === category);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (blogs.length === 0) {
+                document.getElementById('blogs-no-results').style.display = 'block';
+                return;
+            }
+
+            renderBlogs(blogs);
+            document.getElementById('blogs-container').style.display = 'grid';
+            document.getElementById('blogs-no-results').style.display = 'none';
+        }
+
+        // 블로그 렌더링
+        function renderBlogs(blogs) {
+            const container = document.getElementById('blogs-container');
+            container.innerHTML = '';
+
+            blogs.forEach(blog => {
+                const card = createBlogCard(blog);
+                container.appendChild(card);
+            });
+        }
+
+        // 블로그 카드 생성
+        function createBlogCard(blog) {
+            const card = document.createElement('div');
+            card.className = 'card rounded-lg p-5';
+
+            const categoryColor = categoryColors[blog.category] || categoryColors['other'];
+            const createdDate = blog.created_at ? formatFullDate(blog.created_at) : 'N/A';
+            const lastCrawled = blog.last_crawled ? formatFullDate(blog.last_crawled) : '아직 수집 안함';
+
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-3">
+                    <h3 class="text-lg font-semibold flex-1">
+                        <a href="${blog.url}" target="_blank" class="hover:text-blue-600">
+                            ${blog.name}
+                        </a>
+                    </h3>
+                    <span class="category-badge ${categoryColor}">${blog.category}</span>
+                </div>
+                <div class="space-y-2 text-sm" style="color: var(--text-secondary);">
+                    <div class="flex items-center gap-2">
+                        <span>📅 등록일:</span>
+                        <span class="font-medium">${createdDate}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>🔄 마지막 크롤링:</span>
+                        <span class="font-medium">${lastCrawled}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>📝 포스트:</span>
+                        <span class="font-medium">${blog.post_count}개</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>⭐ 우선순위:</span>
+                        <span class="font-medium">${blog.priority}</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="${blog.url}" target="_blank" class="text-blue-600 hover:underline text-sm">
+                        블로그 방문 →
+                    </a>
+                </div>
+            `;
+
+            return card;
         }
 
         // 포스트 로드
@@ -714,10 +899,27 @@ async def index():
             return date.toLocaleDateString('ko-KR');
         }
 
+        function formatFullDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
         // Enter 키로 검색
         document.getElementById('search-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadPosts();
         });
+
+        // 블로그 정렬 변경 시 자동 로드
+        document.getElementById('blog-sort').addEventListener('change', loadBlogsList);
+        document.getElementById('blog-category-filter').addEventListener('change', loadBlogsList);
 
         // 초기화
         async function init() {
