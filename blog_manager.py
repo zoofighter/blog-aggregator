@@ -35,7 +35,7 @@ class BlogManager:
                 active BOOLEAN DEFAULT TRUE,
                 description TEXT,
                 tags TEXT,
-                crawl_interval INTEGER DEFAULT 180,
+                crawl_interval INTEGER DEFAULT 60,
                 last_crawled TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -158,7 +158,7 @@ class BlogManager:
 
         Args:
             output_path: 출력 CSV 파일 경로
-            sort_by: 정렬 기준 ('category', 'created_at', 'name', 'priority')
+            sort_by: 정렬 기준 ('category', 'created_at', 'last_crawled', 'name', 'priority')
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -166,6 +166,8 @@ class BlogManager:
         # 정렬 기준 설정
         if sort_by == 'created_at':
             order_clause = "ORDER BY created_at DESC"
+        elif sort_by == 'last_crawled':
+            order_clause = "ORDER BY last_crawled DESC NULLS LAST"
         elif sort_by == 'name':
             order_clause = "ORDER BY name ASC"
         elif sort_by == 'priority':
@@ -206,7 +208,7 @@ class BlogManager:
         Args:
             category: 카테고리 필터
             active_only: 활성화된 블로그만 조회
-            sort_by: 정렬 기준 ('category', 'created_at', 'name', 'priority')
+            sort_by: 정렬 기준 ('category', 'created_at', 'last_crawled', 'name', 'priority')
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -225,6 +227,8 @@ class BlogManager:
         # 정렬 기준 적용
         if sort_by == 'created_at':
             query += " ORDER BY created_at DESC"
+        elif sort_by == 'last_crawled':
+            query += " ORDER BY last_crawled DESC NULLS LAST"
         elif sort_by == 'name':
             query += " ORDER BY name ASC"
         elif sort_by == 'priority':
@@ -420,7 +424,7 @@ def main():
                        help='실행할 작업')
     parser.add_argument('--csv', help='CSV 파일 경로')
     parser.add_argument('--category', help='카테고리 필터')
-    parser.add_argument('--sort-by', choices=['category', 'created_at', 'name', 'priority'],
+    parser.add_argument('--sort-by', choices=['category', 'created_at', 'last_crawled', 'name', 'priority'],
                        default='category', help='정렬 기준 (기본값: category)')
     parser.add_argument('--all', action='store_true', help='비활성 블로그도 포함')
     parser.add_argument('--verbose', '-v', action='store_true', help='상세 출력')
@@ -455,9 +459,7 @@ def main():
         for i, blog in enumerate(blogs, 1):
             status = "🟢" if blog['active'] else "🔴"
             created_date = blog.get('created_at', 'N/A')
-            if created_date and created_date != 'N/A':
-                # 날짜 포맷팅 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DD)
-                created_date = created_date.split()[0] if ' ' in created_date else created_date[:10]
+            last_crawled = blog.get('last_crawled', 'N/A')
 
             print(f"[{i}] {status} {blog['name']} ({blog['category']})")
             if args.verbose:
@@ -465,9 +467,14 @@ def main():
                 print(f"    Feed: {blog['feed_url'] or 'N/A'}")
                 print(f"    Priority: {blog['priority']}")
                 print(f"    등록일: {created_date}")
+                print(f"    마지막 크롤링: {last_crawled}")
                 print()
             else:
-                print(f"    등록일: {created_date}")
+                # 정렬 기준에 따라 표시할 날짜 선택
+                if args.sort_by == 'last_crawled':
+                    print(f"    마지막 크롤링: {last_crawled}")
+                else:
+                    print(f"    등록일: {created_date}")
 
     elif args.action == 'stats':
         manager.print_summary()

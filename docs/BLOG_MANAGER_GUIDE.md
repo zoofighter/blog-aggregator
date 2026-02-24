@@ -276,18 +276,21 @@ python blog_manager.py list --category ml
 python blog_manager.py list --all
 
 # 정렬 옵션
-python blog_manager.py list --sort-by created_at  # 등록일 순
-python blog_manager.py list --sort-by name         # 이름 순
-python blog_manager.py list --sort-by priority     # 우선순위 순
-python blog_manager.py list --sort-by category     # 카테고리 순 (기본)
+python blog_manager.py list --sort-by created_at    # 등록일 순
+python blog_manager.py list --sort-by last_crawled  # 크롤링일 순 ⭐ NEW
+python blog_manager.py list --sort-by name           # 이름 순
+python blog_manager.py list --sort-by priority       # 우선순위 순
+python blog_manager.py list --sort-by category       # 카테고리 순 (기본)
 
 # 조합 사용
 python blog_manager.py list --category ml --sort-by created_at --verbose
+python blog_manager.py list --sort-by last_crawled --verbose
 ```
 
 **정렬 옵션**:
 - `category` (기본값): 카테고리별 그룹화, 우선순위 내림차순
 - `created_at`: 블로그 등록일 기준 내림차순 (최신 등록 먼저)
+- `last_crawled`: 마지막 크롤링일 기준 내림차순 (최근 크롤링 먼저) ⭐ **NEW**
 - `name`: 블로그 이름 알파벳/가나다순 오름차순
 - `priority`: 우선순위 내림차순, 같은 우선순위는 이름순
 
@@ -296,10 +299,10 @@ python blog_manager.py list --category ml --sort-by created_at --verbose
 📋 블로그 목록 (35개) - 정렬: created_at
 
 [1] 🟢 요즘IT (other)
-    등록일: 2026-02-24
+    등록일: 2026-02-24 00:02:01
 
 [2] 🟢 김단테 블로그 (other)
-    등록일: 2026-02-24
+    등록일: 2026-02-24 00:02:01
 ...
 ```
 
@@ -309,7 +312,25 @@ python blog_manager.py list --category ml --sort-by created_at --verbose
     URL: https://yozm.wishket.com/magazine/
     Feed: https://yozm.wishket.com/magazine/feed/
     Priority: medium
-    등록일: 2026-02-24
+    등록일: 2026-02-24 00:02:01
+    마지막 크롤링: 2026-02-24 00:02:14
+...
+```
+
+**크롤링일 기준 정렬** ⭐ **NEW**:
+```bash
+python blog_manager.py list --sort-by last_crawled
+```
+
+**출력**:
+```
+📋 블로그 목록 (35개) - 정렬: last_crawled
+
+[1] 🟢 요즘IT (other)
+    마지막 크롤링: 2026-02-24 00:02:14
+
+[2] 🟢 김단테 블로그 (other)
+    마지막 크롤링: 2026-02-24 00:02:14
 ...
 ```
 
@@ -453,11 +474,19 @@ blogs = manager.list_blogs()
 for blog in blogs:
     print(f"{blog['name']}: {blog['url']}")
 
-# 블로그 목록 (등록일순) ⭐ NEW
+# 블로그 목록 (등록일순)
 blogs = manager.list_blogs(sort_by='created_at')
 for blog in blogs:
     created = blog['created_at'].split()[0]  # YYYY-MM-DD만 추출
-    print(f"[{created}] {blog['name']}")
+    print(f"[등록: {created}] {blog['name']}")
+
+# 블로그 목록 (크롤링일순) ⭐ NEW
+blogs = manager.list_blogs(sort_by='last_crawled')
+for blog in blogs:
+    crawled = blog.get('last_crawled', 'N/A')
+    if crawled and crawled != 'N/A':
+        crawled = crawled.split()[0]
+    print(f"[크롤링: {crawled}] {blog['name']}")
 
 # 통계
 stats = manager.get_stats()
@@ -708,7 +737,8 @@ python blog_manager.py post-stats > stats/$(date +%Y%m%d).txt
 
 **정렬 옵션** (`--sort-by`):
 - `category`: 카테고리별 그룹화 (기본값)
-- `created_at`: 블로그 등록일순 ⭐ **NEW**
+- `created_at`: 블로그 등록일순 (블로그 추가 날짜)
+- `last_crawled`: 마지막 크롤링일순 (최근 수집 날짜) ⭐ **NEW**
 - `name`: 블로그 이름순
 - `priority`: 우선순위순
 
