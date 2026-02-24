@@ -8,6 +8,13 @@ lxml>=4.9.0
 # RSS 피드 파싱
 feedparser>=6.0.10
 
+# 웹 프레임워크 (FastAPI)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# 데이터베이스
+psycopg2-binary>=2.9.9  # PostgreSQL (선택 사항)
+
 # 선택 사항: AI 기반 분석
 # openai>=1.0.0
 
